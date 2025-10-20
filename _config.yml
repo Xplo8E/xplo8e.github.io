@@ -103,7 +103,7 @@ theme: cactus
 deploy:
   type: git
   repo: https://github.com/xplo8e/xplo8e.github.io.git
-  branch: main
+  branch: gh-pages
 
 # Theme Configuration Override
 theme_config:
