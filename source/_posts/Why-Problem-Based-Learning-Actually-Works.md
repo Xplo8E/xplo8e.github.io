@@ -16,7 +16,16 @@ Like, iOS tweak dev. I read the docs, forgot it all. Then I needed to bypass som
 
 Same deal with Frida. I'd been scripting hooks for years but never really got how it worked under the hood—like the connection stuff, injection tricks, all that. Then apps started hanging when I traced them. Figured it was Frida, so I cloned the repo, added a bunch of prints, recompiled it. Traced through the fruity code for USB connections, the tunnel fallback logic, found that transport errors weren't triggering the usbmux fallback—it was treating them as fatal. Made a PR to fix it, but more importantly I actually understood how Frida's connection logic worked now. When you're forced to dig that deep, you can't really half-ass it.
 
-Just recently Frida broke again. Crash logs pointed at systemhook.dylib from palera1n. No source available, so I reversed it in Binary Ninja—spent like two hours in the disassembly just to figure out what that dylib actually does. Found the source later and yeah, I'd read it right. Issue went away on its own, but now I've got this foothold into iOS internals (Mach-O loading, dynamic linking) that I keep building on. These little wins add up—you start seeing how everything connects.
+Just recently Frida broke again. Crash logs pointed at systemhook.dylib from palera1n. No source available, so I reversed it in Binary Ninja—spent like two hours in the disassembly just to figure out what that dylib actually does. Found the source later and yeah, I'd read it right. Patched it with a NOP to the dlclose call. but now I've got this foothold into iOS internals (Mach-O loading, dynamic linking) that I keep building on. These little wins add up—you start seeing how everything connects.
+
+<details>
+<summary>patch the dlclose call with NOP</summary>
+
+```javascript
+// Patch offset 0x5844 (bl dlclose) → NOP
+Memory.patchCode(systemhook.add(0x5844), 4, code => code.writeU32(0xd503201f));
+```
+</details>
 
 Why bother with this instead of just learning the basics? Because tech doesn't work in a straight line. It's messy and you need to figure stuff out on the fly. This approach makes you good at that. Plus when your hunch actually pans out and fixes the bug, that confidence sticks. Sure, it takes longer sometimes (hello 2am compile sessions), but the stuff you learn this way transfers everywhere.
 
